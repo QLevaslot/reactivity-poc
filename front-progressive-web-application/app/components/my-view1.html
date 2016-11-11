@@ -1,0 +1,83 @@
+<link rel="import" href="/bower_components/polymer/polymer.html">
+
+<dom-module id="my-view1">
+  <template>
+    <div>
+      <h1>Item list</h1>
+      <div class="item-handler">
+        <div class="item-add">
+          <input id="item-input" type="text"/>
+          <button onclick="addItem()">Add item</button>
+        </div>
+        <div class="">Items:</div>
+        <ul id="item-list">
+          <template is="dom-repeat" items="{{employees}}">
+            <li>{{item}}</li>
+          </template>
+        </ul>
+      </div>
+    </div>
+  </template>
+
+  <script>
+
+    class MyView1 extends Polymer.Element {
+      static get is() {
+        return 'my-view1'
+      }
+
+      static get config() {
+        return {
+          properties: {
+            items: {
+              type: Array,
+              reflectToAttribute: true,
+              observer: '_listChange',
+              value: []
+            }
+          },
+          observers: [
+            '_routePageChanged(routeData.page)'
+          ],
+        }
+      }
+
+      //constructor() {
+      //  super();
+      //}
+
+      ready() {
+        _listenToStream();
+        super.ready();
+      }
+
+      _listenToStream() {
+        if (!!window.EventSource) {
+          const source = new EventSource('/stream');
+
+          source.addEventListener('message', (e) => {
+            const items = JSON.parse(e.data);
+            this.items = items;
+            document.getElementById('item-list').innerHTML = itemList;
+          }, false);
+
+          source.addEventListener('open', (e) => {
+            console.log("Connection opened");
+          }, false);
+
+          source.addEventListener('error', (e) => {
+            if (e.readyState == EventSource.CLOSED) {
+              console.log("Connection closed")
+            }
+          }, false);
+        }
+      }
+
+      _listChange() {
+
+      }
+
+    }
+    customElements.define(MyView1.is, MyView1);
+  </script>
+</dom-module>
